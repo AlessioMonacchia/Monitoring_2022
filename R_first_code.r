@@ -14,3 +14,23 @@ streams <- data.frame(water, fishes)
 streams
 #view function will show thw table in a different manner
 View(streams)
+
+#fourth lecture, importing and exporting data, setting the working directory (do not put the lab directory in the desktop, but put into the disc C, shorter path)
+setwd("C:/lab/")
+#data.frame to build a data set from R
+streams<-data.frame(water, fishes)
+streams
+#export the table
+write.table(streams, file = "my_first_table.txt")
+#import data into R
+read.table("my_first_table.txt")
+#let's assign it an object inside R
+ducciotable <- read.table("my_first_table.txt")
+#some descriptive stat
+summary(ducciotable)
+#nota: in caso di outliers nei valori, la mediana è più effettiva perchè non ne prenderà conto, mentre la media si, quindi meno affidabile in questo caso.
+#what if we want the descriptive stat con summary ma solo per una delle due variabili? 
+summary(ducciotable$fishes)
+#make a histogram
+hist(ducciotable$fishes)
+hist(ducciotable$water)

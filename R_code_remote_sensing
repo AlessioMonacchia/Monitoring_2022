@@ -1,0 +1,28 @@
+install.packages("raster")
+library(raster)
+#importing data with brick (part of raster package), it import raster data, which is made of grids of satellite image
+#first let R know where the data is with setwd
+setwd("C:/lab/")
+#.grd = grid file; gri = image file; stx = ; hdr = 
+#import satellite data, brick("name of the file"), l=landsat, landsat is a 1972 satellite program with resolution of 30m that captures the whole globe every 14 days, 
+still used today
+l_2011 <- brick("p224r63_2011.grd")
+# nota: objects in R cannot be numbers, at least one letter must be present
+#have info on the data
+l_2011
+#we get: class=type of file, dimensions = 4447533 is number of pixels in just one band, first two numbers are raws and columns; 7 is number of layers; so total pixel 
+number is 4million*7 layers..
+#resolution is in meters, names sre (spectral reflectance) are thermal images; values means the values of reflectance, from 0 to 1 (max reflectance)
+#reflectance = ratio between reflected light and incident ("sent") light
+#plot the data with plot, we see a plot in the amazon pictured in different reflectance ranges, the first 3 bands (B1, B2, B3) are the reflectance in (visible) blue, 
+green and red; 
+plot(l_2011)
+#function colorRampPalette, changes colors used to show the differences in reflectance; before R was using a default color pallet; note:colors in R always in quotes; 
+we put c in front because it is an array, 100 is the number of colors in that range that we want to use
+cl <- colorRampPalette(c("black", "grey", "light grey"))(100)
+#insert the new colors in the plot function
+plot(l_2011, col = cl)
+# to match the bands with RGB of the computer with plotRGB, r=3 means we put the red band in r band spot (?), strectch is used to strech the data 
+and better see the colors, we are using the same colors our eyes would see it in this example (this color combo is called "natural land colors" 
+as our esyes would see it, with blue, red and green)
+plotRGB(l_2011, r=3, g=2, b=1, stretch="Lin")

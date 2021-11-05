@@ -26,3 +26,24 @@ plot(l_2011, col = cl)
 and better see the colors, we are using the same colors our eyes would see it in this example (this color combo is called "natural land colors" 
 as our esyes would see it, with blue, red and green)
 plotRGB(l_2011, r=3, g=2, b=1, stretch="Lin")
+
+Lecture 05/11
+#we want to plot only one of the color band (green or blue or red or near infrared (ni)), for example B1_sre(spectral reflectance)
+plot(l2011$B1_sre)
+#now we are going to change the colors, the legend and schemes of the colors, last number is the number of shades between the two selected colors that the program is going to use
+cl <- colorRampPalette(c("black","grey","light grey"))(100)
+plot(l2011$B1_sre, col = cl)
+#if we wNT TO CHANGE THE COLRRAMPPALLET colors
+cl_1 <- colorRampPalette(c("dark green","green","light green"))(100)
+#the light green are the areas where a lot of green light is reflected and not absorbed, the dark green the contrary. The higher the reflectance the lighter ther color, as we decided by writing the code this way.
+#doing the same for the blue band (B1_sre)
+clb <- colorRampPalette(c("dark blue","blue","light blue"))(100)
+plot(l2011$B1_sre, col=clb)
+#how to plot two graphs on the same "page" (multiframe = mf), ex. comparing the blue to the green. We use the par function
+par(mfrow = c(1,2))
+plot(l2011$B2_sre, col=clg)
+plot(l2011$B1_sre, col=clb)
+#if we want two rows and 1 column instead..
+par(mfrow = c(2,1))
+plot(l2011$B2_sre, col=clg)
+plot(l2011$B1_sre, col=clb)

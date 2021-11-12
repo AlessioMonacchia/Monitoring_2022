@@ -74,6 +74,27 @@ plot(l2011$B4_sre, col = cln)
 #function to clean images
 dev.off()
 #see the "real" image first with "human eyes" (red, blue and green wavelenghts), thne introducing near infrared and changing lens
+l2011 <- brick("p224r63_2011.grd")
 plotRGB(l2011, r = 3, g = 2, b = 1, stretch = "Lin")
 plotRGB(l2011, r = 1, g = 2, b = 3, stretch = "Lin")
 plotRGB(l2011, r = 4, g = 3, b = 2, stretch = "Lin")
+
+#Lecture 12/11
+library(raster)
+setwd("C:/lab")
+l2011 <- brick("p224r63_2011.grd")
+plotRGB(l2011)
+#we are going to use the stretch, which is stretching a range of wavelenght and is for the purpose of beter visualizing data
+plotRGB(l2011, r = 4, g = 3, b = 2, stretch = "Lin")
+#we can also use a function called histogram stretching to enhance a certain wavelenght, it enhances the differences among areas in the image
+plotRGB(l2011, r=4, g=3, b=2, stretch="Hist")
+#importing 1988 data
+l1988 <- brick("p224r63_1988.grd")
+#putting the two images for comparison
+par(mfrow=c(2,1))
+plotRGB(l2011, r = 4, g = 3, b = 2, stretch = "Lin")
+plotRGB(l1988, r = 4, g = 3, b = 2, stretch = "Lin")
+#mettere l'infrared nella blue band 
+par(mfrow=c(2,1))
+plotRGB(l2011, r = 2, g = 3, b = 4, stretch = "Lin")
+plotRGB(l1988, r = 2, g = 3, b = 4, stretch = "Lin")

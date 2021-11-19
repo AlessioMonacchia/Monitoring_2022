@@ -1,0 +1,9 @@
+#Lecture 19/11
+library(raster)
+setwd("C:/lab/")
+#discover how the bands of the deforestation images are made
+install("rgdal")
+library("rgdal")
+l1992 <- brick("defor1_.jpg")
+#Bands: defor_1.1, defor_1.2, defor_1.3
+plotRGB(??) #Persi i codici e tutto

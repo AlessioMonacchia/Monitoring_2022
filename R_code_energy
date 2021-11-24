@@ -1,1 +1,48 @@
+library(raster)
+setwd("C:/lab/")
+library(rgdal)
+l1992 <- brick("defor1_.jpg")
+l2006 <- brick("defor2_.jpg")
+par(mfrow=c(2,1))
+plotRGB(l1992, r=1, g=2, b=3, stretch="lin")
+plotRGB(l2006, r=1, g=2, b=3, stretch="lin")
 
+#colors: 1=NIR, 2=red, 3=blue, when a "color" is in 1, everything that reflects a lot that color will be highlighted
+#in the 2006 image water is blue and in 1982 looked white, because in 1982 there was a higher concentration of soil particles dispersed in the water, so the reflectance changed.
+#NIR cannot be seen with our eyes. question: how to be sure the two images are from the same area? Rivers are not a good choice as they tend to repeat their shapes (fractals), so in this case take the road that cuts through the forest
+#clearly, if we see geometrically simple plots, it's probably man made. Fractal shapes are instead typical of nature.
+#DVI is an index of reflectance, DVI=NIR-red, calculated as sottrazione of one color reflectance from a second color reflectance.
+#In this process, we make this calculation for every single pixel
+dev.off() #to close the previous window
+dvi1992 <- l1992$defor1_.1 -l1992$defor1_.2
+cl <- colorRampPalette(c("darkblue", "yellow", "red", "black"))(100)
+plot(dvi1992, col=cl)
+dvi2006 <- l2006$defor2_.1 -l2006$defor2_.2
+plot(dvi2006, col=cl)
+
+par(mfrow=c(2,1))
+plot(dvi1992, col=cl)
+plot(dvi2006, col=cl)
+#the yellow part represents all the energy loss..we produce food, crops and disperse/waste a lot of energy, structure, biodiversity
+#why are we using yellow to show the energy loss? because yellow cathces a lot of attention(eyes), red to blue is not friendly to color blind people (paper in Virtuale)
+#we can also subtract the values of the image from 1992 to 2006 or vice versa, pixel by pixel.
+dvidif <- dvi1992-dvi2006
+cld <- colorRampPalette(c("blue", "white", "red"))(100)
+plot(dvidif, col = cld)
+#all red parts of the image is where energy has been lost
+#plotting all together
+pdf("energy.pdf")
+par(mfrow=c(3,2))
+plotRGB(l1992, r=1, g=2, b=3, stretch="lin")
+plotRGB(l2006, r=1, g=2, b=3, stretch="lin")
+plot(dvi1992, col=cl)
+plot(dvi2006, col=cl)
+plot(dvidif, col = cld)
+dev.off()
+
+pdf("dvi.pdf")
+par(mfrow=c(3,1))
+plot(dvi1992, col=cl)
+plot(dvi2006, col=cl)
+plot(dvidif, col = cld)
+dev.off()

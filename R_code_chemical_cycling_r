@@ -1,0 +1,58 @@
+# Rcode for chemical cycling study
+# time change  of NO2 concentration in the air in EU in 2020 (lockdown yes/no), the images are different layers representing different time of the studied months
+# which functions we know to import data? read, raster. We cannot use brick function cause in this case we have a single and not multiple layers in each of the data file
+library(raster)
+
+# Set working directory
+setwd()
+en01 <- raster("EN_0001.png")
+cl <- colorRampPalette(c("red", "orange", "yellow"))(100)
+plot(en01, col = cl)
+en13 <- raster("EN_0013.png")
+par(mfrow = c(2, 1))
+plot(en01, col = cl)
+plot(en13, col = cl)
+
+# import all the images
+
+en01 <- raster("EN_0001.png")
+en02 <- raster("EN_0002.png")
+en03 <- raster("EN_0003.png")
+en04 <- raster("EN_0004.png")
+en05 <- raster("EN_0005.png")
+en06 <- raster("EN_0006.png")
+en07 <- raster("EN_0007.png")
+en08 <- raster("EN_0008.png")
+en09 <- raster("EN_0009.png")
+en10 <- raster("EN_0010.png")
+en11 <- raster("EN_0011.png")
+en12 <- raster("EN_0012.png")
+en13 <- raster("EN_0013.png")
+
+# plot all the data together, we can use par, or building a stack which we will also do
+par(mfrow = c(4, 4))
+    plot(en01, col = cl)
+    plot(en02, col = cl)
+    plot(en03, col = cl)
+    plot(en04, col = cl)
+    plot(en05, col = cl)
+    plot(en06, col = cl)
+    plot(en07, col = cl)
+    plot(en08, col = cl)
+    plot(en09, col = cl)
+    plot(en10, col = cl)
+    plot(en11, col = cl)
+    plot(en12, col = cl)
+    plot(en13, col = cl)
+dev.off()    
+# to avoid this mess..stack! as in a satellite image, where we have multiple layers all together. Stack allows us to put all the layers together
+EN <- stack(en01, en02, en03, en04, en05, en06, en07, en08, en09, en10, en11, en12, en13)
+plot(EN, col = cl)
+
+# basically, a SATELLITE IMAGE is a STACK
+#plot only first image from the stack
+plot(EN$EN_0001, col=cl)
+dev.off()
+
+#Otherwise with RGB (Red, Green, Blue), in red we will see high level of NO2 in first image, everything green will be from high N02 levels in the 7th image etc.
+plotRGB(EN, r=1, g=7, b=13, stretch ="lin")

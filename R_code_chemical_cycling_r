@@ -56,3 +56,25 @@ dev.off()
 
 #Otherwise with RGB (Red, Green, Blue), in red we will see high level of NO2 in first image, everything green will be from high N02 levels in the 7th image etc.
 plotRGB(EN, r=1, g=7, b=13, stretch ="lin")
+
+#DAY 2 (29/11)
+#we can also import the data all together and have already the stack, use the raster function with all of them by the lapply() function, which serves to apply a function over a list or a vector
+#first we make the list with the list.files() function, not good idea to insert fyle type on "pattern" section of the function, better in this case use the forfirst part of the name of all the files = EN
+library(raster)
+setwd("C:/lab/EN")
+rlist <- list.files(pattern="EN")
+rlist
+# we generated the list to which apply the lapply() function
+list_rast <- lapply(rlist, raster)
+list_rast
+EN_stack <- stack(list_rast)
+EN_stack
+cl <- colorRampPalette(c("red", "orange", "yellow"))(100)
+plot(EN_stack, col=cl) #says that figure margins are too large, I just put R in full page and then worked
+plot(EN_stack$EN_0001, col=cl)
+# difference
+EN_DIF <- EN_stack$EN_0001 - EN_stack$EN_0013
+cl <- colorRampPalette(c("blue", "white", "red"))(100) # red= decrease in NO2, blue = increase
+plot(EN_DIF, col=cl)
+# way to run a script directly without copy-pasting -> automated processing source function, saving script somewhere in compotuer and then run automatically in R
+source("automatic.txt")

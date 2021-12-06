@@ -1,0 +1,46 @@
+# RECOVER LECTURE 3/12
+# LECTURE 6/12
+library(raster)
+library(ggplot2)
+library(RStoolbox)
+rlist <- list.files(pattern = "defor")
+list_rast <- lapply(rlist, brick)
+
+plot(list_rast[[1]])
+l1992 <- list_rast[[1]]
+plotRGB(l1992, r=1, g=2, b=3, stretch = "Lin")
+l2006 <- (list_rast[[2]])
+plotRGB(l2006, r=1, g=2, b=3, stretch = "Lin")
+
+# unsupervised classification, we have an original image with pixels where forest and other parts can be seen by us humans
+# we need to explain to the software what we discern as humans = that is a forest, that is a field
+# we use the different values in reflectance to communicate that to the software
+l1992c <- unsuperClass(l1992, nClasses = 2)  #unsuperClass(x, nClasses)
+# Check out hot themes DUCCIO, one interesting with PCA analysis
+plot(l1992c$map)   # value 1 = non forest, value 2 = forest
+# let's generate frequency table with freq on map of object l1992c, I get the number of pixels belonging to class 1 and 2
+freq(l1992c$map)
+l2006c <- unsuperClass(l2006, nClasses = 2)  
+plot(l2006c$map)
+freq(l2006c$map)
+total <- 35155 + 306137
+total
+prop_agricolture_1992 <- 35155/total
+prop_agricolture_1992
+prop_forest_1992 <- 306137/total
+prop_forest_1992
+
+prop_agricolture_2006 <- 164612/total
+prop_forest_2006 <- 178114/total
+cover <- c("Forest", "Agricolture")
+prop1992 <- c(prop_forest_1992, prop_agricolture_1992)
+proportion_1992 <- data.frame(cover, prop1992)
+prop2006 <- c(prop_forest_2006, prop_agricolture_2006)
+proportion_2006 <- data.frame(cover, prop2006)
+p1 <- ggplot(proportion_1992, aes(cover, prop1992, color = cover)) + geom_bar(stat = "identity", fill = "white")
+p2 <- ggplot(proportion_2006, aes(cover, prop2006, color = cover)) + geom_bar(stat = "identity", fill = "white")
+proportion <- data.frame(prop1992, prop2006, cover)
+
+install.packages("gridExtra")
+library(gridExtra)
+grid.arrange(p1, p2)

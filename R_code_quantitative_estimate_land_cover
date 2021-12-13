@@ -37,10 +37,32 @@ prop1992 <- c(prop_forest_1992, prop_agricolture_1992)
 proportion_1992 <- data.frame(cover, prop1992)
 prop2006 <- c(prop_forest_2006, prop_agricolture_2006)
 proportion_2006 <- data.frame(cover, prop2006)
-p1 <- ggplot(proportion_1992, aes(cover, prop1992, color = cover)) + geom_bar(stat = "identity", fill = "white")
-p2 <- ggplot(proportion_2006, aes(cover, prop2006, color = cover)) + geom_bar(stat = "identity", fill = "white")
+p1 <- ggplot(proportion_1992, aes(cover, prop1992, color = cover)) + geom_bar(stat = "identity", fill = "white") +  ylim(0,1)
+p2 <- ggplot(proportion_2006, aes(cover, prop2006, color = cover)) + geom_bar(stat = "identity", fill = "white") +  ylim(0,1)
 proportion <- data.frame(prop1992, prop2006, cover)
 
 install.packages("gridExtra")
 library(gridExtra)
-grid.arrange(p1, p2)
+grid.arrange(p1, p2, nrow = 1)
+
+library(patchwork)
+
+p1+p2    #get same result but with simpler syntax
+p1/p2    #one graph on top of the other
+
+l1992 <- list_rast[[1]]
+l1992
+plotRGB(l1992, r=1, g=2, b=3, stretch = "Lin")
+ggRGB(l1992, r=1, g=2, b=3)
+gp1 <- ggRGB(l1992, r=1, g=2, b=3, stretch = "Lin")
+gp2 <- ggRGB(l1992, r=1, g=2, b=3, stretch = "hist")
+gp3 <- ggRGB(l1992, r=1, g=2, b=3, stretch = "sqrt")
+gp4 <- ggRGB(l1992, r=1, g=2, b=3, stretch = "log")   #is natural log, not log in base 10
+gp1+gp2+gp3+gp4
+
+#multitemporal patchwork
+l2006 <- list_rast[[2]]
+gp1 <- ggRGB(l1992, r=1, g=2, b=3)
+gp5 <- ggRGB(l2006, r=1, g=2, b=3)
+gp1+gp5
+gp1/gp5

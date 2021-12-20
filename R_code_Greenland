@@ -1,1 +1,57 @@
+# lst, T not of the air but at the soil or at the highest part of vegetation
+# which is obviously in  line with air T, so it is a proxy!!
+# lst = land surface T
+rlist <- list.files(pattern = "lst")
+rlist
+library(raster)
+import <- lapply(rlist, raster)
+import
 
+tgr <- stack(import)    # tgr = T of greenland
+tgr
+cl <- colorRampPalette(c("blue", "light blue", "pink", "yellow"))(100)
+plot(tgr, col = cl)
+
+library(RStoolbox)
+library(ggplot2)
+library(patchwork)
+library(viridis)
+
+#ggplot of first and final image, 2000 vs 2015
+p1 <- ggplot() +
+  geom_raster(tgr$lst_2000, mapping = aes(x=x, y=y, fill=lst_2000)) +
+  scale_fill_viridis(option="magma") +
+  ggtitle("LST in 2000")
+
+p2 <- ggplot() +
+  geom_raster(tgr$lst_2015, mapping = aes(x=x, y=y, fill=lst_2015)) +
+  scale_fill_viridis(option="magma") +
+  ggtitle("LST in 2015")
+
+p1 + p2
+
+hist(tgr$lst_2015)
+par(mfrow=c(2,2))
+hist(tgr$lst_2000)
+hist(tgr$lst_2005)
+hist(tgr$lst_2010)
+hist(tgr$lst_2015)
+
+dev.off()
+
+plot(tgr$lst_2000, tgr$lst_2015, xlim=c(12500, 15000), ylim=c(12500,15000))
+abline(0, 1, col="red")
+
+par(mfrow=c(4,4))
+hist(tgr$lst_2000)
+hist(tgr$lst_2005)
+hist(tgr$lst_2010)
+hist(tgr$lst_2015)
+plot(tgr$lst_2000, tgr$lst_2005, xlim=c(12500, 15000), ylim=c(12500,15000))
+plot(tgr$lst_2000, tgr$lst_2010, xlim=c(12500, 15000), ylim=c(12500,15000))
+plot(tgr$lst_2000, tgr$lst_2015, xlim=c(12500, 15000), ylim=c(12500,15000))
+plot(tgr$lst_2005, tgr$lst_2010, xlim=c(12500, 15000), ylim=c(12500,15000))
+plot(tgr$lst_2005, tgr$lst_2015, xlim=c(12500, 15000), ylim=c(12500,15000))
+plot(tgr$lst_2010, tgr$lst_2015, xlim=c(12500, 15000), ylim=c(12500,15000))
+
+pairs(tgr)

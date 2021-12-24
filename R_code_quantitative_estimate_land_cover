@@ -1,5 +1,20 @@
-# RECOVER LECTURE 3/12
-# LECTURE 6/12
+# LECTURE 3/12
+# calculate the amount of forest loss (land cover=everything that covers the soil)
+library(raster)
+rlist <- list.files(pattern = "defor")
+list_rast <- lapply(rlist, brick)  # brick to import all layers of a image
+# we don't make a stack cause we want to keep the two images separated for reason of comparison
+plotRGB(list_rast[[1]], r=1, g=2, b=3, strecth="Lin")   # defor: NIR 1, red 2, green 3, everything will become red since we placed the most reflected
+# , which is NIR, into the red band. Image is from the Earth observatory
+l1992 <- list_rast[[1]]
+l2006 <- list_rast[[2]]
+plotRGB(l1992, stretch="Lin")
+plotRGB(l2006, stretch="Lin")
+# in the images we have different land covers (forest, agricolture, etc.) and we distinguish them by their different reflectance, 
+# we can tell R to distinguish and classify them (ex. attribute at a certain reflectance value, a certain type of land cover name)
+# we do this by RSToolbox, by unsuperClass function. Inside the object created there is a map with two possible values in this case
+# cause I specified 2 classes in the unsuperClass function
+
 library(raster)
 library(ggplot2)
 library(RStoolbox)
@@ -8,7 +23,7 @@ list_rast <- lapply(rlist, brick)
 
 plot(list_rast[[1]])
 l1992 <- list_rast[[1]]
-plotRGB(l1992, r=1, g=2, b=3, stretch = "Lin")
+plotRGB(l1992, r=1, g=2, b=3, stretch = "Lin") # plotRGB to plot in red, blue and green
 l2006 <- (list_rast[[2]])
 plotRGB(l2006, r=1, g=2, b=3, stretch = "Lin")
 
@@ -19,7 +34,8 @@ l1992c <- unsuperClass(l1992, nClasses = 2)  #unsuperClass(x, nClasses)
 # Check out hot themes DUCCIO, one interesting with PCA analysis
 plot(l1992c$map)   # value 1 = non forest, value 2 = forest
 # let's generate frequency table with freq on map of object l1992c, I get the number of pixels belonging to class 1 and 2
-freq(l1992c$map)
+freq(l1992c$map) # ow many pixels in the "map" (or image) are of value 1 = forest? to discover I use the freq function, generating a
+# frequency table
 l2006c <- unsuperClass(l2006, nClasses = 2)  
 plot(l2006c$map)
 freq(l2006c$map)
@@ -37,9 +53,13 @@ prop1992 <- c(prop_forest_1992, prop_agricolture_1992)
 proportion_1992 <- data.frame(cover, prop1992)
 prop2006 <- c(prop_forest_2006, prop_agricolture_2006)
 proportion_2006 <- data.frame(cover, prop2006)
-p1 <- ggplot(proportion_1992, aes(cover, prop1992, color = cover)) + geom_bar(stat = "identity", fill = "white") +  ylim(0,1)
-p2 <- ggplot(proportion_2006, aes(cover, prop2006, color = cover)) + geom_bar(stat = "identity", fill = "white") +  ylim(0,1)
+# geom_bar in ggplot2 for making a barchart, ggplot2 has peculiar synthax; identity in stat is simply taking the numbers as they are
+# fill to state which color we want inside the bars
+p1 <- ggplot(proportion_1992, aes(x=cover, y=prop1992, color = cover)) + geom_bar(stat = "identity", fill = "white") +  ylim(0,1)
+p2 <- ggplot(proportion_2006, aes(x=cover, y=prop2006, color = cover)) + geom_bar(stat = "identity", fill = "white") +  ylim(0,1)
 proportion <- data.frame(prop1992, prop2006, cover)
+
+# LECTURE 6/12
 
 install.packages("gridExtra")
 library(gridExtra)

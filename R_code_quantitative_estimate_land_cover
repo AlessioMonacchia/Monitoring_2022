@@ -61,9 +61,34 @@ proportion <- data.frame(prop1992, prop2006, cover)
 
 # LECTURE 6/12
 
-install.packages("gridExtra")
+Data (defor 1 and 2) is from Earth Observatory
+# we have a image with pixels and we are seeing that some are forests and some agricoltural areas, we should explain R
+# that the forest is what we see in red in the picture -> make use of reflectance value to let R understand
+plotRGB(l1992, r=1, g=2, b=3, stretch = "Lin")
+# Classification of the file by unsupervised classification, unsupervised means we only tell the program the number of classes.
+# Supervised classification instead requires us to find out the classes, and not the software figuring that out itself
+l1992c <- unsuperClass(l1992, nClasses=2)   # unsuperClass(x, nClasses)
+l1992c
+# Raster layer is a single layer, RasterBrick is made of multiple RasterLayers.
+# Unsuperclass object has a number of values equal to the number of classes we decided
+# to call the values of the UnsuperClass object use $map
+plot(1992c$map)
+freq(1992c$map)
+total <- 341292
+propagri <- 34710/total
+propforest <- 306582/total
+cover <- c("Forest", "Agricolture")
+prop1992 <- c(propforest, propagri)
+proportion1992 <- data.frame(cover, prop1992)
+ggplot equal to lecture 3/12, uses stat="identity" which means that for the statistic we are just going to use the numbers
+l2006c <- unsuperClass(l2006, nClasses = 2)
+l2006c
+plot(l2006c$map)
+freq(l2006c$map)
+
+install.packages("gridExtra") # similar as par(), we use it here on ggplot graphs
 library(gridExtra)
-grid.arrange(p1, p2, nrow = 1)
+grid.arrange(p1, p2, nrow = 1) # puts several graphs in the same multiframe
 
 library(patchwork)
 

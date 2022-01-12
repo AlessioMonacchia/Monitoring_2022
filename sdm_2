@@ -55,3 +55,33 @@ source("R_code_source_sdm.r")
 library(sdm)
 datasdm <- sdmData(train = species, predictors = preds)
 m1 <- sdm(Occurrence~temperature+elevation+precipitation+vegetation, data=datasdm, methods="glm")
+
+12/01
+setwd("C:/lab")
+source("R_code_source_sdm.r")
+library(sdm)
+# we tell R what are the training and the predictors data
+datasdm <- sdmData(train = species, predictors = preds)
+# glm = general linear model; y=a+b0x0+b1x1+b2x2+b3x3...obtain a single slope and start making 
+# predictions=obtain probabilities per each pixel based on values of species presence/absence etc 
+# the xs are the values assumed by the predictors, the bs are the slopes calculated by the model
+# model
+m1 <- sdm(Occurrence~temperature+elevation+precipitation+vegetation, data=datasdm, methods="glm")
+# we have a model, we want the predictions, we use the predict()
+# the prediction will be a RasterLayer we can plot
+# prediction map probability
+p1 <- predict(m1, newdata=preds)
+plot(p1, col=cl)
+# we get probability from 0 to 1 to find a certain species
+# pch=point character types, with points we add the original presence points
+# we can see if the model fits the original points
+# if the model does not fit completely it might be because we did use only some of the significant
+# factors(predictors) that affect the species distribution
+points(presences, pch=19)
+# stack, the final graph is the prediction, the rest are the probability of presence related 
+# to the single predictors (not really but it is what we can infer from these graphs)
+s1 <- stack(preds, p1)
+plot(s1, col=cl)
+# names function applied to stack is creating an array of names for the nlayers of the stack
+names(s1) <- c("elevation", "precipitation", "temperature", "vegetation", "model")
+plot(s1, col=cl)

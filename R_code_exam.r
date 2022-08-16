@@ -1,80 +1,157 @@
-## Exam Project Alessio Monacchia
-
-setwd("~/Dropbox/Alessio/Project")
-library(ggplot2)
+setwd("~/Trasimeno") # set the working directory, we use the folder where the downloaded images are present, the images where downloaded from the Earth 
+# Observing System (EOS) website
+# recalling all the packages we are going to use by the library function
 library(raster)
-library(gridExtra)
-library(RStoolbox)
-library(corrplot)
+library(rgdal)
 library(viridis)
+library(ggplot2)
+library(RStoolbox)
+library(patchwork)
 
-list <- list.files(pattern = "L1T") # create list of satellite images from Adamello glacier area. The images make use of false colors in the form of the Normalized Difference Snow Index (NDSI) which uses bands B2 (green) and B5 (short wave infrared) in the formula: (B2-B5)/(B2+B5). NDSI is a suitable index to detect snow cover and clearly distinguish it from other types of surface reflectances, including clouds.
-list_rast <- lapply(list, raster) # import raster images included in list
-list_brick <- lapply(list, brick) # import same images as Raster brick objects
+# import the downloaded images in R with the brick function
+list <- list.files(pattern = "L1TP") # create a list containing all the images to import
+tras <- lapply(list, brick) # import with brick and lapply
+# the imported images have slightly different dimension, I need to crop all to the same size 
+ext <- c(254115, 274845, 4770945, 4790085) # create an extent objext with the size of the smallest of the images
+trasc <- lapply(tras, crop, ext) # crop all the files
+# change names of the files in the list and all the names of the bands in the files
+names(trasc) <- c(2001, 2008, 2015, 2022) 
+names(trasc$`2001`) <- c("b1", "b2", "b3", "b4", "b5", "b6")
+names(trasc$`2008`) <- c("b1", "b2", "b3", "b4", "b5", "b6")
+names(trasc$`2015`) <- c("b1", "b2", "b3", "b4", "b5", "b6")
+names(trasc$`2022`) <- c("b1", "b2", "b3", "b4", "b5", "b6")
+# plot all the images in natural colors with plotRGB
+par(mfrow=c(2,2)) # placing all the images in a same window with par function
+plotRGB(trasc$`2001`, r=1, g=2, b=3, stretch="lin")
+plotRGB(trasc$`2008`, r=1, g=2, b=3, stretch="lin")
+plotRGB(trasc$`2015`, r=1, g=2, b=3, stretch="lin")
+plotRGB(trasc$`2022`, r=1, g=2, b=3, stretch="lin")
+dev.off()
 
-# Cropping both the raster layers list and the raster bricks list to the size of the smallest image
-ext <- c(0, 764, 0, 699) 
-list_rastcr <- lapply(list_rast, crop, ext)
-list_brickcr <- lapply(list_brick, crop, ext)
 
-plotRGB(list_brick[[8]], r=1, g=2, b=3, stretch = "Lin") # plotting in RGB a single Raster Brick from the Raster brick list previously created, visualize original image
 
-Ada_brick <- brick(list_rastcr) # create raster brick from the cropped raster layers list to be used for the time series plot
-cl <- colorRampPalette(c("blue", "orange"))(100) # create a color blind friendly palette for the time series plot
-plot(Ada_brick, col=cl, main="Adamello snow cover 1986-2020", cex.main=2) # plot TEMPORAL EVOLUTION
-plotRGB(Ada_brick, r=8, g=4, b=1, stretch = "lin") # comparison of snow cover in three years 1986-2001-2020 by plotting in plotRGB the Raster layers corresponding to the years 1986, 2001 and 2020
+### TEMPERATURE analysis by using the thermal bands: first separate the thermal bands (infrared) from each of the RasterBricks, we assign them to an object 
+# with nomenclature corresponding to the relative year.
+# Since the values differ, originating from different Landsat satellites, it is necessary to normalize them in order to perform a comparison.
+thermal01 <- (trasc$`2001`$b6/maxValue(trasc$`2001`$b6))
+thermal08 <- (trasc$`2008`$b6/maxValue(trasc$`2008`$b6))
+thermal15 <- (trasc$`2015`$b6/maxValue(trasc$`2015`$b6))
+thermal22 <- (trasc$`2022`$b6/maxValue(trasc$`2022`$b6))
 
-Snowdif <- Ada_brick[[1]] - Ada_brick[[8]] # creating a new raster layer calculated by subtracting the 2020 layer to the 1986 layer, it highlights the areas where the snow cover has decreased/increased
-p3 <- ggplot() + # plot calculated difference, use Viridis package for colors
-  geom_raster(Snowdif, mapping = aes(x=x, y=y, fill=layer)) +
-  scale_fill_viridis(option="viridis") +
-  ggtitle("Snow cover difference 1986-2020") + 
-  labs(fill='Difference')
+# create and plot a stack including only the thermal bands from the different years
+thermal_stack <- stack(thermal01, thermal08, thermal15, thermal22) # we create a single stack containing the cropped and normalized thermal images.
+plot(thermal_stack)
 
-mytheme <- theme( # set of features to improve plot main title and axis titles
-  plot.title = element_text(family = "Helvetica", face = "bold", size = (25)),
-  axis.title = element_text(family = "Helvetica", size = (20), colour = "steelblue4"),
-  axis.text = element_text(family = "Courier", colour = "cornflowerblue", size = (20)))
+# compare the thermal Rasters from different years with plotRGB and with the pairs() function, which calculates scatter plot matrices.
+plotRGB(thermal_stack, r=1, g=2, b=4, stretch="lin")
+names(thermal_stack) <- c("2001", "2008", "2015","2022") # I decided to rename the layers with the corresponding years.
+pairs(thermal_stack) # NOTE: temperature values are representative of a single day and therefore are not effectively representing the actual temperatures 
+# of the period, which estimation would require an average of the entire month of August.
 
-print(p3 + mynamestheme) # improved snow cover difference ggplot
+# calculate and plot the difference between the thermal bands values of the years 2022 and 2001
+dif_thermal <- thermal_stack$X2022-thermal_stack$X2001
+cl <- colorRampPalette(c("blue", "white", "red"))(100)
+plot(dif_thermal, col=cl)
 
-# Procedure for quantitative ESTIMATION OF SNOW LAND COVER
-Ada_class <- lapply(list_rastcr, unsuperClass, nClasses = 2) # dividing raster brick cell values into 2 classes, one will relate to the snow cover, the rest will cluster around the non-snow cover
-plot(Ada_class[[1]]$map) # visualize the one of the "clustered" images
 
-y <- NULL # create an empty vector to be used for creating a matrix for storing output values (frequencies) of the for loop
-for(i in 1:8) {  # calculating the frequencies of each clustered raster layer = for each year
-  frequenc <- freq(Ada_class[[i]]$map)
-  y <- rbind(y, frequenc)
+
+### NDVI analysis: First we calculate the NDVI for each year by applying the formula NDVI = (NIR-RED)/(NIR+RED), the NIR band is the number 4 whereas 
+# the visible red band is the number 1.
+NDVI01 <- (trasc$`2001`$b4 - trasc$`2001`$b1) / (trasc$`2001`$b4 + trasc$`2001`$b1)
+NDVI08 <- (trasc$`2008`$b4 - trasc$`2008`$b1) / (trasc$`2008`$b4 + trasc$`2008`$b1)
+NDVI15 <- (trasc$`2015`$b4 - trasc$`2015`$b1) / (trasc$`2015`$b4 + trasc$`2015`$b1)
+NDVI22 <- (trasc$`2022`$b4 - trasc$`2022`$b1) / (trasc$`2022`$b4 + trasc$`2022`$b1)
+plot(NDVI22)
+list_NDVI <- c(NDVI01, NDVI08, NDVI15, NDVI22) # create a list of the NDVI Rasters
+
+NDVI_class <- lapply(list_NDVI, unsuperClass, nClasses=3) # we use 3 classes as by empirical analysis it appeared to be the most suitable classification 
+# approach.
+
+x <- NULL # create an empty vector to be used for creating a matrix in the for loop for storing output values
+for(i in 1:4) {  # calculating the frequencies of each clusterized raster brick by for loop
+  frequenc <- freq(NDVI_class[[i]]$map)
+  x <- rbind(x, frequenc)
 }
 
-area <- sum(y[1:2,2]) # calculate total area 
+# we create a dataframe including the information needed: cover, year and area (count)
+land_cover <- x[-c(4,8,12,16),] # escluding the NA values
+land_cover <- as.data.frame(land_cover) # transforming the matrix into a dataframe suitable for analysis and plotting 
 
-percentages <- y[, 2]/area*100 # create a vector containing the % of snow land cover, calculate the % of snow cover by dividing the frequencies for the area and multiplying by 100
-percentages <- percentages[-c(2, 3, 5, 7, 10, 11, 14, 16)] # removing rows not containing the snow cover %, it is possible as from the temporal evolution plot it is clear that the snow cover extent is lower than the rest of the land cover types for all the years
-year <- c("1986", "1991", "1997", "2001", "2006", "2011", "2016", "2020") # create a vector assigning the years corresponding to the snow cover %
+# we do not know which land cover where assigned to which values by the software, so we need to plot each classified image and manually tell the software
+# the right values-land cover combinations.
+plot(NDVI_class[[4]]$map)
+land_cover$cover <- c("lake","urban/agr","forest","urban/agr","lake","forest","lake","urban/agr","forest","forest","lake","urban/agr") # manually assign 
+# each land cover type to the corresponding classification value.
+land_cover$year <- c(rep(2001, 3) , rep(2008, 3) , rep(2015, 3), rep(2022, 3)) # add column containing the year
+total_pixels <- sum(land_cover$count[1:3]) # calculate the total amount of pixels
+land_cover$count <- 370*land_cover$count/total_pixels # calculating the area in km^2 using the known total area 370m^2)
 
-dataset <- data.frame(percentages, year) # create a dataset containing snow cover % and year
+# we create a stacked barchart to illustrate the land cover types evolution through the years
+p <- ggplot(land_cover, aes(x=year, y=count, fill=cover)) +
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Land cover evolution in the Trasimeno lake area")
+p + ylab("area (km^2)")
 
-# here I create a  barchart of the dataset just created, it describes the temporal evolution of % of ice cover from 1986 to 2020 at intervals of approximately 5 years
-p1 <- ggplot(dataset, aes(x=year, y=percentages)) + 
-  geom_bar(stat="identity", fill = "blue") 
-p1
 
-print(p1 + mynamestheme + labs(title = "Barplot Adamello snow cover 1986-2020", y = "Snow cover (%)", x = "Year")) # Include theme to ggplot
 
-# correlation
-dataset$year <- as.numeric(dataset$year) # need to change the year column into a numeric one in order to run a correlation analysis with the %
-cor.test(dataset$year, dataset$percentages) # the correlation test 
+### WATER BODIES: the Landsat websites suggests a band combination which is effective in distinguishing land from water. 
+# I want to perform the same quantitative analysis and plotting as with NDVI and land cover type, but this time specifically on the lake extent
+water01 <- stack(trasc$`2001`$b4, trasc$`2001`$b5, trasc$`2001`$b3)
+water08 <- stack(trasc$`2008`$b4, trasc$`2008`$b5, trasc$`2008`$b3)
+water15 <- stack(trasc$`2015`$b4, trasc$`2015`$b5, trasc$`2015`$b3)
+water22 <- stack(trasc$`2022`$b4, trasc$`2022`$b5, trasc$`2022`$b3)
+water_list <- c(water01, water08, water15, water22)
 
-model <- lm(percentages~year, data = dataset) # create a linear model to describe the correlation between time and percentages
-summary(model)
+plotRGB(water22, r=1, g=2, b=3, stretch="lin")
 
-p2 <- ggplot(corr_set, aes(x = year, y = percentages)) + # plot the linear model, visualize the % variation through time with fitted linear model
-  geom_point() +
-  stat_smooth(method = "lm", col = "red")
-print(p2 + mynamestheme + labs(title = "Linear model plot", y = "Snow cover (%)", x = "Year"))
+# performing unsupervised classification to obtain estimates of water cover, I used 3 classes 
+water_class <- lapply(water_list, unsuperClass, nClasses = 3) # dividing raster brick cell values into 3 categories
+y <- NULL # create an empty vector to be used for creating a matrix in the for loop for storing output values
+for(i in 1:4) {  # calculating the frequencies of each clusterized Raster Brick using a for loop to facilitate the calculations
+  frequenc <- freq(water_class[[i]]$map)
+  y <- rbind(y, frequenc)
+}
+plot(water_class[[3]]$map) # plot each classified raster image to understand which value (class) the software assigned to water bodies in each image
+water_array <- y[c(1,7,10,15),] # select only the water bodies values (note: this value might change depending on the classes assignment made by the software)
 
-f <- as.data.frame(c(2030, 2040)) # create a vector for predict function as to predict the snow cover values for 2030 and 2040
-colnames(f) <- "year" 
-prediction <- predict(model, newdata = f) # results of prediction using fitted model for 2030 and 2040
+# calculate water cover extent
+# I multiple the water cover% for the known extension in Km^2 of the area under study, the latter information was taken at the moment I downloaded the images
+water_area <- 370*water_array[,2]/total_pixels
+
+# create a barplot for the water cover evolution in time with ggplot and geom_bar
+year <- c(2001, 2008, 2015, 2022)
+water_data <- data.frame(water_area, year)
+w <- ggplot(water_data, aes(x=year, y=water_area, fill=year)) +
+  geom_bar(stat="identity", fill = "blue") +
+  ggtitle("Water cover evolution in the Trasimeno lake area")
+w + ylab("area (km^2)")
+
+
+
+### DROUGHT/HEAT WAVES VULNERABILITY: here we create a PCA analysis whose results can be used as a proxy of land vulnerability to drought and heat waves
+# precipitation data was not found, so I created a raster whose values are within the precipitation range found in literature for the study area.
+# Only data for the year 2022 were considered. In particular the model was fed with temperature, vegetation (NDVI), water cover and precipitation.
+# RasterLayer with the correct parameters for the precipitation data.
+r <- raster(ncol=691, nrow=638, xmn=254115, xmx=274845, ymn=4770945, ymx=4790085)
+projection(r) <- "+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs " # set the coordinate reference system (CRS) (define the projection).
+values(r) <- runif(ncell(r), min=700, max=900) # set the values, we assign randomly values comprised between 700 and 900 with the runiff function.
+# Prepare the factors to include in the PCA analysis.
+temperature <- thermal22n
+vegetation <- NDVI22
+lake <- water22
+precipitation <- r/maxValue(r)
+PCA_factors <- stack(temperature, vegetation, lake, precipitation)
+PCA_drought <- rasterPCA(PCA_factors) # performing the RasterPCA on the stacked PCAfactors
+drought <- PCA_drought$map$PC1/maxValue(PCA_drought$map$PC1) # we normalize values to improve visual representation
+
+# plot the initial natural colors image of the lake area with the image representing drought vulnerability and export in pdf format making use of Viridis
+# package for color blind friendly pallette and of patchwork package for easily cobining the plots into a single image.
+pdf("drought.pdf")
+p1 <- ggRGB(trasc$`2022`, r=1, g=2, b=3, stretch="lin") +
+  ggtitle("Trasimeno lake area in natural colors (20/7/2022)")
+p2 <- ggplot() +
+  geom_raster(drought, mapping = aes(x=x, y=y, fill=PC1)) +
+  scale_fill_viridis(option="plasma") +
+  ggtitle("Drought vulnerability Trasimeno lake area")
+p1+p2
+dev.off()

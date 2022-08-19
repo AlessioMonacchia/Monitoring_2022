@@ -1,3 +1,7 @@
+# R code for assessment of ecosystems state in the Trasimeno lake area (IT) based on temperature, land cover and lake area time series analysis over the 
+# years (2001-2022).
+# Data was downloaded from: https://eos.com/find-satellite/
+
 setwd("~/Trasimeno") # set the working directory, we use the folder where the downloaded images are present, the images where downloaded from the Earth 
 # Observing System (EOS) website
 

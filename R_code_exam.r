@@ -155,6 +155,7 @@ vegetation <- NDVI22
 lake <- water22
 precipitation <- r/maxValue(r)
 PCA_factors <- stack(temperature, vegetation, lake, precipitation)
+
 PCA_drought <- rasterPCA(PCA_factors) # performing the RasterPCA on the stacked PCAfactors
 drought <- PCA_drought$map$PC1/maxValue(PCA_drought$map$PC1) # we normalize values to improve visual representation
 
